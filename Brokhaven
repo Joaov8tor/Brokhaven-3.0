@@ -57,9 +57,16 @@ local function createLabeledTextBox(name, position, placeholder, callback)
     TextBox.PlaceholderText = placeholder
     TextBox.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
     TextBox.TextColor3 = Color3.new(1, 1, 1)
-    TextBox.FocusLost:Connect(callback)
+    TextBox.FocusLost:Connect(function(enterPressed)
+        if enterPressed then
+            callback(TextBox.Text)
+        end
+    end)
     return TextBox
 end
+
+-- Variável para armazenar o jogador-alvo
+local currentTarget = nil
 
 -- Funções do Painel
 createButton("ESP Players (Vermelho)", UDim2.new(0, 10, 0, 10), function()
@@ -72,78 +79,54 @@ createButton("ESP Players (Vermelho)", UDim2.new(0, 10, 0, 10), function()
     end
 end)
 
-createButton("Mostrar FPS e Resolução", UDim2.new(0, 10, 0, 50), function()
-    local fps = game:GetService("Stats").FrameRateManager.RenderedFps
-    local resolution = workspace.CurrentCamera.ViewportSize
-    print("FPS:", fps)
-    print("Resolução:", resolution)
-end)
-
-createButton("RAM utilizada", UDim2.new(0, 10, 0, 90), function()
-    local ram = collectgarbage("count") / 1024
-    print("RAM usada:", ram, "MB")
-end)
-
-createLabeledTextBox("Velocidade:", UDim2.new(0, 10, 0, 130), "Digite valor", function(input)
-    local speed = tonumber(input.Text)
+createLabeledTextBox("Velocidade", UDim2.new(0, 10, 0, 50), "Digite valor", function(value)
+    local speed = tonumber(value)
     if speed then
         game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = speed
     end
 end)
 
-createLabeledTextBox("Altura Pulo:", UDim2.new(0, 10, 0, 170), "Digite valor", function(input)
-    local jump = tonumber(input.Text)
+createLabeledTextBox("Altura Pulo", UDim2.new(0, 10, 0, 90), "Digite valor", function(value)
+    local jump = tonumber(value)
     if jump then
         game.Players.LocalPlayer.Character.Humanoid.JumpPower = jump
     end
 end)
 
-createLabeledTextBox("Vel. Carro:", UDim2.new(0, 10, 0, 210), "Digite valor", function(input)
-    local speed = tonumber(input.Text)
-    if speed and game.Players.LocalPlayer.Character:FindFirstChildOfClass("VehicleSeat") then
-        game.Players.LocalPlayer.Character:FindFirstChildOfClass("VehicleSeat").MaxSpeed = speed
-    end
-end)
-
-createButton("Mini Pessoa", UDim2.new(0, 10, 0, 250), function()
-    local char = game.Players.LocalPlayer.Character
-    if char then
-        char.HumanoidRootPart.Size = Vector3.new(1, 1, 1)
-        char.Humanoid.BodyHeightScale.Value = 0.5
-    end
-end)
-
-createButton("Tamanho Normal", UDim2.new(0, 10, 0, 290), function()
-    local char = game.Players.LocalPlayer.Character
-    if char then
-        char.HumanoidRootPart.Size = Vector3.new(2, 2, 2)
-        char.Humanoid.BodyHeightScale.Value = 1
-    end
-end)
-
-createLabeledTextBox("Gravidade:", UDim2.new(0, 10, 0, 330), "Digite valor", function(input)
-    local gravity = tonumber(input.Text)
+createLabeledTextBox("Gravidade", UDim2.new(0, 10, 0, 130), "Digite valor", function(value)
+    local gravity = tonumber(value)
     if gravity then
         workspace.Gravity = gravity
     end
 end)
 
--- Ver Tela de Outros e Voltar à Tela Normal
-local currentTarget = nil
-
-createLabeledTextBox("Nickname:", UDim2.new(0, 10, 0, 370), "Digite nome", function(input)
-    currentTarget = input.Text
-end)
-
-createButton("Ver Tela do Jogador", UDim2.new(0, 10, 0, 410), function()
-    local targetPlayer = game.Players:FindFirstChild(currentTarget)
-    if targetPlayer and targetPlayer.Character then
-        print("Observando tela de:", targetPlayer.Name)
-        workspace.CurrentCamera.CameraSubject = targetPlayer.Character:FindFirstChild("Humanoid")
+createLabeledTextBox("Vel. Carro", UDim2.new(0, 10, 0, 170), "Digite valor", function(value)
+    local carSpeed = tonumber(value)
+    local vehicle = game.Players.LocalPlayer.Character:FindFirstChildOfClass("VehicleSeat")
+    if carSpeed and vehicle then
+        vehicle.MaxSpeed = carSpeed
     end
 end)
 
-createButton("Voltar Tela Normal", UDim2.new(0, 10, 0, 450), function()
+createLabeledTextBox("Nickname", UDim2.new(0, 10, 0, 210), "Digite nome", function(value)
+    currentTarget = value
+end)
+
+createButton("Ver Tela do Jogador", UDim2.new(0, 10, 0, 250), function()
+    if currentTarget then
+        local targetPlayer = game.Players:FindFirstChild(currentTarget)
+        if targetPlayer and targetPlayer.Character then
+            workspace.CurrentCamera.CameraSubject = targetPlayer.Character:FindFirstChild("Humanoid")
+            print("Observando tela de:", targetPlayer.Name)
+        else
+            print("Jogador não encontrado.")
+        end
+    else
+        print("Insira um nickname primeiro.")
+    end
+end)
+
+createButton("Voltar Tela Normal", UDim2.new(0, 10, 0, 290), function()
     workspace.CurrentCamera.CameraSubject = game.Players.LocalPlayer.Character:FindFirstChild("Humanoid")
     print("Tela normal restaurada.")
 end)
