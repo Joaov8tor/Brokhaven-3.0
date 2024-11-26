@@ -1,36 +1,24 @@
--- Configurações iniciais
-local ScreenGui = Instance.new("ScreenGui")
-local OpenCloseButton = Instance.new("TextButton")
+-- Variáveis e Inicialização
+local bannedPlayers = {}  -- Lista de jogadores banidos por número de casa
+local roommateData = {}    -- Dados de colegas de quarto (casa -> jogador)
+local selectedHouse = nil  -- Número da casa selecionada
+local Player = game.Players.LocalPlayer
 local Panel = Instance.new("Frame")
+local ScreenGui = Instance.new("ScreenGui")
 
--- Propriedades da UI
-ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-ScreenGui.Name = "BrookhavenHub"
-
-OpenCloseButton.Parent = ScreenGui
-OpenCloseButton.Size = UDim2.new(0, 100, 0, 50)
-OpenCloseButton.Position = UDim2.new(0, 20, 0, 20)
-OpenCloseButton.Text = "Abrir Painel"
-OpenCloseButton.BackgroundColor3 = Color3.new(0, 0, 0)
-OpenCloseButton.TextColor3 = Color3.new(1, 1, 1)
-
+-- Criando a interface
+ScreenGui.Parent = Player:WaitForChild("PlayerGui")
 Panel.Parent = ScreenGui
-Panel.Size = UDim2.new(0, 300, 0, 500)
-Panel.Position = UDim2.new(0.5, -150, 0.5, -250)
-Panel.Visible = false
+Panel.Size = UDim2.new(0, 400, 0, 600)
+Panel.Position = UDim2.new(0.5, -200, 0.5, -300)
 Panel.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+Panel.Visible = true
 
--- Botão para abrir/fechar o painel
-OpenCloseButton.MouseButton1Click:Connect(function()
-    Panel.Visible = not Panel.Visible
-    OpenCloseButton.Text = Panel.Visible and "Fechar Painel" or "Abrir Painel"
-end)
-
--- Função utilitária para criar botões
+-- Função para criar botões
 local function createButton(name, position, callback)
     local Button = Instance.new("TextButton")
     Button.Parent = Panel
-    Button.Size = UDim2.new(0, 280, 0, 30)
+    Button.Size = UDim2.new(0, 360, 0, 30)
     Button.Position = position
     Button.Text = name
     Button.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
@@ -39,11 +27,11 @@ local function createButton(name, position, callback)
     return Button
 end
 
--- Função utilitária para criar textboxes com título
+-- Função para criar textboxes com rótulos
 local function createLabeledTextBox(name, position, placeholder, callback)
     local Label = Instance.new("TextLabel")
     Label.Parent = Panel
-    Label.Size = UDim2.new(0, 100, 0, 30)
+    Label.Size = UDim2.new(0, 150, 0, 30)
     Label.Position = position
     Label.Text = name
     Label.TextScaled = true
@@ -52,8 +40,8 @@ local function createLabeledTextBox(name, position, placeholder, callback)
 
     local TextBox = Instance.new("TextBox")
     TextBox.Parent = Panel
-    TextBox.Size = UDim2.new(0, 150, 0, 30)
-    TextBox.Position = position + UDim2.new(0, 110, 0, 0)
+    TextBox.Size = UDim2.new(0, 200, 0, 30)
+    TextBox.Position = position + UDim2.new(0, 160, 0, 0)
     TextBox.PlaceholderText = placeholder
     TextBox.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
     TextBox.TextColor3 = Color3.new(1, 1, 1)
@@ -65,68 +53,123 @@ local function createLabeledTextBox(name, position, placeholder, callback)
     return TextBox
 end
 
--- Variável para armazenar o jogador-alvo
-local currentTarget = nil
-
--- Funções do Painel
-createButton("ESP Players (Vermelho)", UDim2.new(0, 10, 0, 10), function()
-    for _, player in pairs(game.Players:GetPlayers()) do
-        if player ~= game.Players.LocalPlayer and player.Character then
-            local highlight = Instance.new("Highlight")
-            highlight.Parent = player.Character
-            highlight.FillColor = Color3.new(1, 0, 0)
-        end
+-- Função para escolher número da casa
+createLabeledTextBox("Escolher número da casa", UDim2.new(0, 20, 0, 20), "Digite número", function(value)
+    selectedHouse = tonumber(value)
+    if selectedHouse then
+        print("Casa escolhida: " .. selectedHouse)
+    else
+        print("Número inválido de casa.")
     end
 end)
 
-createLabeledTextBox("Velocidade", UDim2.new(0, 10, 0, 50), "Digite valor", function(value)
-    local speed = tonumber(value)
-    if speed then
-        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = speed
+-- Função para adicionar colega de quarto
+createButton("Adicionar Colega de Quarto", UDim2.new(0, 20, 0, 60), function()
+    if selectedHouse then
+        local targetPlayer = game.Players:GetPlayers()[math.random(1, #game.Players:GetPlayers())] -- Simulando escolha aleatória de jogador
+        print(targetPlayer.Name .. " adicionado como colega de quarto da casa " .. selectedHouse)
+        roommateData[selectedHouse] = roommateData[selectedHouse] or {}
+        table.insert(roommateData[selectedHouse], targetPlayer.Name)
+    else
+        print("Selecione uma casa primeiro!")
     end
 end)
 
-createLabeledTextBox("Altura Pulo", UDim2.new(0, 10, 0, 90), "Digite valor", function(value)
-    local jump = tonumber(value)
-    if jump then
-        game.Players.LocalPlayer.Character.Humanoid.JumpPower = jump
-    end
-end)
-
-createLabeledTextBox("Gravidade", UDim2.new(0, 10, 0, 130), "Digite valor", function(value)
-    local gravity = tonumber(value)
-    if gravity then
-        workspace.Gravity = gravity
-    end
-end)
-
-createLabeledTextBox("Vel. Carro", UDim2.new(0, 10, 0, 170), "Digite valor", function(value)
-    local carSpeed = tonumber(value)
-    local vehicle = game.Players.LocalPlayer.Character:FindFirstChildOfClass("VehicleSeat")
-    if carSpeed and vehicle then
-        vehicle.MaxSpeed = carSpeed
-    end
-end)
-
-createLabeledTextBox("Nickname", UDim2.new(0, 10, 0, 210), "Digite nome", function(value)
-    currentTarget = value
-end)
-
-createButton("Ver Tela do Jogador", UDim2.new(0, 10, 0, 250), function()
-    if currentTarget then
-        local targetPlayer = game.Players:FindFirstChild(currentTarget)
-        if targetPlayer and targetPlayer.Character then
-            workspace.CurrentCamera.CameraSubject = targetPlayer.Character:FindFirstChild("Humanoid")
-            print("Observando tela de:", targetPlayer.Name)
+-- Função de desbanir jogador
+createButton("Desbanir Jogador", UDim2.new(0, 20, 0, 100), function()
+    if selectedHouse then
+        local targetPlayerName = game.Players:GetPlayers()[math.random(1, #game.Players:GetPlayers())].Name -- Simulando escolha aleatória de jogador
+        if table.find(roommateData[selectedHouse] or {}, targetPlayerName) then
+            print(targetPlayerName .. " desbanido da casa " .. selectedHouse)
+            -- Aqui você pode implementar a lógica para reverter o banimento (ou qualquer outra ação)
+            -- por exemplo, removendo o jogador da lista de "banidos"
         else
-            print("Jogador não encontrado.")
+            print(targetPlayerName .. " não é colega de quarto da casa " .. selectedHouse)
         end
     else
-        print("Insira um nickname primeiro.")
+        print("Selecione uma casa primeiro!")
     end
 end)
 
-createButton("Voltar Tela Normal", UDim2.new(0, 10, 0, 290), function()
-    workspace.CurrentCamera.CameraSubject = game.Players.LocalPlayer.Character:FindFirstChild("Humanoid")
-    print("Tela normal restaurada.")
+-- Função para ver a tela dos outros jogadores
+createButton("Ver Tela de Outro Jogador", UDim2.new(0, 20, 0, 140), function()
+    local targetPlayer = game.Players:GetPlayers()[math.random(1, #game.Players:GetPlayers())] -- Simulando escolha aleatória de jogador
+    print("Visualizando a tela de " .. targetPlayer.Name)
+    -- Aqui você pode adicionar a lógica de ver a tela de outro jogador
 end)
+
+-- Função para teleportar para estações
+createButton("Teleportar para Estações", UDim2.new(0, 20, 0, 180), function()
+    local stations = {"Metro", "Sorveteria", "Loja de Carro", "Mecânica de Carro", "Polícia", "Bombeiros"}
+    local selectedStation = stations[math.random(1, #stations)]
+    print("Teleportando para: " .. selectedStation)
+    -- Implementar a lógica de teleportação
+end)
+
+-- Funções de ajuste de velocidade, pulo, gravidade, etc.
+createLabeledTextBox("Ajustar Velocidade", UDim2.new(0, 20, 0, 220), "Digite velocidade", function(value)
+    local speed = tonumber(value)
+    if speed then
+        print("Velocidade ajustada para: " .. speed)
+        -- Implementar lógica para ajustar a velocidade
+    else
+        print("Valor de velocidade inválido.")
+    end
+end)
+
+createLabeledTextBox("Ajustar Altura do Pulo", UDim2.new(0, 20, 0, 260), "Digite altura", function(value)
+    local jumpHeight = tonumber(value)
+    if jumpHeight then
+        print("Altura do pulo ajustada para: " .. jumpHeight)
+        -- Implementar lógica para ajustar altura do pulo
+    else
+        print("Valor de altura inválido.")
+    end
+end)
+
+createLabeledTextBox("Ajustar Gravidade", UDim2.new(0, 20, 0, 300), "Digite gravidade", function(value)
+    local gravity = tonumber(value)
+    if gravity then
+        print("Gravidade ajustada para: " .. gravity)
+        -- Implementar lógica para ajustar gravidade
+    else
+        print("Valor de gravidade inválido.")
+    end
+end)
+
+createLabeledTextBox("Ajustar Velocidade do Carro", UDim2.new(0, 20, 0, 340), "Digite velocidade do carro", function(value)
+    local carSpeed = tonumber(value)
+    if carSpeed then
+        print("Velocidade do carro ajustada para: " .. carSpeed)
+        -- Implementar lógica para ajustar a velocidade do carro
+    else
+        print("Valor de velocidade inválido.")
+    end
+end)
+
+-- Função para espionar jogadores (ESP)
+createButton("Ativar ESP", UDim2.new(0, 20, 0, 380), function()
+    print("ESP ativado!")
+    -- Implementar a lógica do ESP aqui (destacar jogadores, etc)
+end)
+
+-- Função de troll: Fazer o jogador ser pequeno e voltar ao normal
+createButton("Mini Pessoa", UDim2.new(0, 20, 0, 420), function()
+    local size = 0.5
+    Player.Character:SetPrimaryPartCFrame(Player.Character.PrimaryPart.CFrame)
+    Player.Character:SetPrimaryPartCFrame(Player.Character.PrimaryPart.CFrame * CFrame.new(0, size, 0))
+end)
+
+createButton("Voltar ao Tamanho Normal", UDim2.new(0, 20, 0, 460), function()
+    local normalSize = 1
+    Player.Character:SetPrimaryPartCFrame(Player.Character.PrimaryPart.CFrame)
+    Player.Character:SetPrimaryPartCFrame(Player.Character.PrimaryPart.CFrame * CFrame.new(0, normalSize, 0))
+end)
+
+-- Função de troll: Teleportar para o céu
+createButton("Teleportar para o Céu", UDim2.new(0, 20, 0, 500), function()
+    local skyPosition = Vector3.new(0, 1000, 0)
+    Player.Character:SetPrimaryPartCFrame(CFrame.new(skyPosition))
+    print("Teleportado para o céu!")
+end)
+
