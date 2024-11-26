@@ -15,8 +15,8 @@ OpenCloseButton.BackgroundColor3 = Color3.new(0, 0, 0)
 OpenCloseButton.TextColor3 = Color3.new(1, 1, 1)
 
 Panel.Parent = ScreenGui
-Panel.Size = UDim2.new(0, 300, 0, 400)
-Panel.Position = UDim2.new(0.5, -150, 0.5, -200)
+Panel.Size = UDim2.new(0, 300, 0, 500)
+Panel.Position = UDim2.new(0.5, -150, 0.5, -250)
 Panel.Visible = false
 Panel.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
 
@@ -39,21 +39,24 @@ local function createButton(name, position, callback)
     return Button
 end
 
--- Função utilitária para criar textboxes
-local function createTextBox(name, position, callback)
+-- Função utilitária para criar textboxes com título
+local function createLabeledTextBox(name, position, placeholder, callback)
     local Label = Instance.new("TextLabel")
     Label.Parent = Panel
-    Label.Size = UDim2.new(0, 280, 0, 30)
+    Label.Size = UDim2.new(0, 100, 0, 30)
     Label.Position = position
     Label.Text = name
-    Label.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+    Label.TextScaled = true
+    Label.BackgroundTransparency = 1
     Label.TextColor3 = Color3.new(1, 1, 1)
 
     local TextBox = Instance.new("TextBox")
-    TextBox.Parent = Label
-    TextBox.Size = UDim2.new(0, 150, 0, 20)
-    TextBox.Position = UDim2.new(0, 100, 0, 5)
-    TextBox.PlaceholderText = "Digite aqui"
+    TextBox.Parent = Panel
+    TextBox.Size = UDim2.new(0, 150, 0, 30)
+    TextBox.Position = position + UDim2.new(0, 110, 0, 0)
+    TextBox.PlaceholderText = placeholder
+    TextBox.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+    TextBox.TextColor3 = Color3.new(1, 1, 1)
     TextBox.FocusLost:Connect(callback)
     return TextBox
 end
@@ -81,21 +84,21 @@ createButton("RAM utilizada", UDim2.new(0, 10, 0, 90), function()
     print("RAM usada:", ram, "MB")
 end)
 
-createTextBox("Velocidade do Player", UDim2.new(0, 10, 0, 130), function(input)
+createLabeledTextBox("Velocidade:", UDim2.new(0, 10, 0, 130), "Digite valor", function(input)
     local speed = tonumber(input.Text)
     if speed then
         game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = speed
     end
 end)
 
-createTextBox("Altura do Pulo", UDim2.new(0, 10, 0, 170), function(input)
+createLabeledTextBox("Altura Pulo:", UDim2.new(0, 10, 0, 170), "Digite valor", function(input)
     local jump = tonumber(input.Text)
     if jump then
         game.Players.LocalPlayer.Character.Humanoid.JumpPower = jump
     end
 end)
 
-createTextBox("Velocidade do Carro", UDim2.new(0, 10, 0, 210), function(input)
+createLabeledTextBox("Vel. Carro:", UDim2.new(0, 10, 0, 210), "Digite valor", function(input)
     local speed = tonumber(input.Text)
     if speed and game.Players.LocalPlayer.Character:FindFirstChildOfClass("VehicleSeat") then
         game.Players.LocalPlayer.Character:FindFirstChildOfClass("VehicleSeat").MaxSpeed = speed
@@ -118,29 +121,29 @@ createButton("Tamanho Normal", UDim2.new(0, 10, 0, 290), function()
     end
 end)
 
-createTextBox("Gravidade", UDim2.new(0, 10, 0, 330), function(input)
+createLabeledTextBox("Gravidade:", UDim2.new(0, 10, 0, 330), "Digite valor", function(input)
     local gravity = tonumber(input.Text)
     if gravity then
         workspace.Gravity = gravity
     end
 end)
 
--- Teleporte para locais
-createButton("Teleporte: Estação de Metrô", UDim2.new(0, 10, 0, 370), function()
-    teleportTo(CFrame.new(Vector3.new(-400, 10, 250))) -- Substitua pelas coordenadas reais
+-- Ver Tela de Outros e Voltar à Tela Normal
+local currentTarget = nil
+
+createLabeledTextBox("Nickname:", UDim2.new(0, 10, 0, 370), "Digite nome", function(input)
+    currentTarget = input.Text
 end)
 
-createButton("Teleporte: Sorveteria", UDim2.new(0, 10, 0, 410), function()
-    teleportTo(CFrame.new(Vector3.new(200, 10, 350))) -- Substitua pelas coordenadas reais
-end)
-
--- Ver tela de outros jogadores
-createButton("Ver Tela de Outros", UDim2.new(0, 10, 0, 450), function()
-    local player = game.Players.LocalPlayer
-    for _, otherPlayer in pairs(game.Players:GetPlayers()) do
-        if otherPlayer ~= player and otherPlayer.Character and otherPlayer.Character:FindFirstChild("Humanoid") then
-            print("Vendo tela de:", otherPlayer.Name)
-            workspace.CurrentCamera.CameraSubject = otherPlayer.Character.Humanoid
-        end
+createButton("Ver Tela do Jogador", UDim2.new(0, 10, 0, 410), function()
+    local targetPlayer = game.Players:FindFirstChild(currentTarget)
+    if targetPlayer and targetPlayer.Character then
+        print("Observando tela de:", targetPlayer.Name)
+        workspace.CurrentCamera.CameraSubject = targetPlayer.Character:FindFirstChild("Humanoid")
     end
+end)
+
+createButton("Voltar Tela Normal", UDim2.new(0, 10, 0, 450), function()
+    workspace.CurrentCamera.CameraSubject = game.Players.LocalPlayer.Character:FindFirstChild("Humanoid")
+    print("Tela normal restaurada.")
 end)
