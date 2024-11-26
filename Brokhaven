@@ -1,0 +1,146 @@
+-- Configurações iniciais
+local ScreenGui = Instance.new("ScreenGui")
+local OpenCloseButton = Instance.new("TextButton")
+local Panel = Instance.new("Frame")
+
+-- Propriedades da UI
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.Name = "BrookhavenHub"
+
+OpenCloseButton.Parent = ScreenGui
+OpenCloseButton.Size = UDim2.new(0, 100, 0, 50)
+OpenCloseButton.Position = UDim2.new(0, 20, 0, 20)
+OpenCloseButton.Text = "Abrir Painel"
+OpenCloseButton.BackgroundColor3 = Color3.new(0, 0, 0)
+OpenCloseButton.TextColor3 = Color3.new(1, 1, 1)
+
+Panel.Parent = ScreenGui
+Panel.Size = UDim2.new(0, 300, 0, 400)
+Panel.Position = UDim2.new(0.5, -150, 0.5, -200)
+Panel.Visible = false
+Panel.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+
+-- Botão para abrir/fechar o painel
+OpenCloseButton.MouseButton1Click:Connect(function()
+    Panel.Visible = not Panel.Visible
+    OpenCloseButton.Text = Panel.Visible and "Fechar Painel" or "Abrir Painel"
+end)
+
+-- Função utilitária para criar botões
+local function createButton(name, position, callback)
+    local Button = Instance.new("TextButton")
+    Button.Parent = Panel
+    Button.Size = UDim2.new(0, 280, 0, 30)
+    Button.Position = position
+    Button.Text = name
+    Button.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+    Button.TextColor3 = Color3.new(1, 1, 1)
+    Button.MouseButton1Click:Connect(callback)
+    return Button
+end
+
+-- Função utilitária para criar textboxes
+local function createTextBox(name, position, callback)
+    local Label = Instance.new("TextLabel")
+    Label.Parent = Panel
+    Label.Size = UDim2.new(0, 280, 0, 30)
+    Label.Position = position
+    Label.Text = name
+    Label.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+    Label.TextColor3 = Color3.new(1, 1, 1)
+
+    local TextBox = Instance.new("TextBox")
+    TextBox.Parent = Label
+    TextBox.Size = UDim2.new(0, 150, 0, 20)
+    TextBox.Position = UDim2.new(0, 100, 0, 5)
+    TextBox.PlaceholderText = "Digite aqui"
+    TextBox.FocusLost:Connect(callback)
+    return TextBox
+end
+
+-- Funções do Painel
+createButton("ESP Players (Vermelho)", UDim2.new(0, 10, 0, 10), function()
+    for _, player in pairs(game.Players:GetPlayers()) do
+        if player ~= game.Players.LocalPlayer and player.Character then
+            local highlight = Instance.new("Highlight")
+            highlight.Parent = player.Character
+            highlight.FillColor = Color3.new(1, 0, 0)
+        end
+    end
+end)
+
+createButton("Mostrar FPS e Resolução", UDim2.new(0, 10, 0, 50), function()
+    local fps = game:GetService("Stats").FrameRateManager.RenderedFps
+    local resolution = workspace.CurrentCamera.ViewportSize
+    print("FPS:", fps)
+    print("Resolução:", resolution)
+end)
+
+createButton("RAM utilizada", UDim2.new(0, 10, 0, 90), function()
+    local ram = collectgarbage("count") / 1024
+    print("RAM usada:", ram, "MB")
+end)
+
+createTextBox("Velocidade do Player", UDim2.new(0, 10, 0, 130), function(input)
+    local speed = tonumber(input.Text)
+    if speed then
+        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = speed
+    end
+end)
+
+createTextBox("Altura do Pulo", UDim2.new(0, 10, 0, 170), function(input)
+    local jump = tonumber(input.Text)
+    if jump then
+        game.Players.LocalPlayer.Character.Humanoid.JumpPower = jump
+    end
+end)
+
+createTextBox("Velocidade do Carro", UDim2.new(0, 10, 0, 210), function(input)
+    local speed = tonumber(input.Text)
+    if speed and game.Players.LocalPlayer.Character:FindFirstChildOfClass("VehicleSeat") then
+        game.Players.LocalPlayer.Character:FindFirstChildOfClass("VehicleSeat").MaxSpeed = speed
+    end
+end)
+
+createButton("Mini Pessoa", UDim2.new(0, 10, 0, 250), function()
+    local char = game.Players.LocalPlayer.Character
+    if char then
+        char.HumanoidRootPart.Size = Vector3.new(1, 1, 1)
+        char.Humanoid.BodyHeightScale.Value = 0.5
+    end
+end)
+
+createButton("Tamanho Normal", UDim2.new(0, 10, 0, 290), function()
+    local char = game.Players.LocalPlayer.Character
+    if char then
+        char.HumanoidRootPart.Size = Vector3.new(2, 2, 2)
+        char.Humanoid.BodyHeightScale.Value = 1
+    end
+end)
+
+createTextBox("Gravidade", UDim2.new(0, 10, 0, 330), function(input)
+    local gravity = tonumber(input.Text)
+    if gravity then
+        workspace.Gravity = gravity
+    end
+end)
+
+-- Teleporte para locais
+createButton("Teleporte: Estação de Metrô", UDim2.new(0, 10, 0, 370), function()
+    teleportTo(CFrame.new(Vector3.new(-400, 10, 250))) -- Substitua pelas coordenadas reais
+end)
+
+createButton("Teleporte: Sorveteria", UDim2.new(0, 10, 0, 410), function()
+    teleportTo(CFrame.new(Vector3.new(200, 10, 350))) -- Substitua pelas coordenadas reais
+end)
+
+-- Ver tela de outros jogadores
+createButton("Ver Tela de Outros", UDim2.new(0, 10, 0, 450), function()
+    local player = game.Players.LocalPlayer
+    for _, otherPlayer in pairs(game.Players:GetPlayers()) do
+        if otherPlayer ~= player and otherPlayer.Character and otherPlayer.Character:FindFirstChild("Humanoid") then
+            print("Vendo tela de:", otherPlayer.Name)
+            workspace.CurrentCamera.CameraSubject = otherPlayer.Character.Humanoid
+        end
+    end
+end)
