@@ -1,18 +1,31 @@
--- Variáveis e Inicialização
-local bannedPlayers = {}  -- Lista de jogadores banidos por número de casa
-local roommateData = {}    -- Dados de colegas de quarto (casa -> jogador)
-local selectedHouse = nil  -- Número da casa selecionada
-local Player = game.Players.LocalPlayer
-local Panel = Instance.new("Frame")
+-- Configurações iniciais
 local ScreenGui = Instance.new("ScreenGui")
+local OpenCloseButton = Instance.new("TextButton")
+local Panel = Instance.new("Frame")
+local Player = game.Players.LocalPlayer
+local Camera = workspace.CurrentCamera
 
--- Criando a interface
 ScreenGui.Parent = Player:WaitForChild("PlayerGui")
+ScreenGui.Name = "BrookhavenHub"
+
+-- Botão para abrir/fechar o painel
+OpenCloseButton.Parent = ScreenGui
+OpenCloseButton.Size = UDim2.new(0, 100, 0, 50)
+OpenCloseButton.Position = UDim2.new(0, 20, 0, 20)
+OpenCloseButton.Text = "Abrir Painel"
+OpenCloseButton.BackgroundColor3 = Color3.new(0, 0, 0)
+OpenCloseButton.TextColor3 = Color3.new(1, 1, 1)
+
 Panel.Parent = ScreenGui
 Panel.Size = UDim2.new(0, 400, 0, 600)
 Panel.Position = UDim2.new(0.5, -200, 0.5, -300)
+Panel.Visible = false
 Panel.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
-Panel.Visible = true
+
+OpenCloseButton.MouseButton1Click:Connect(function()
+    Panel.Visible = not Panel.Visible
+    OpenCloseButton.Text = Panel.Visible and "Fechar Painel" or "Abrir Painel"
+end)
 
 -- Função para criar botões
 local function createButton(name, position, callback)
@@ -53,123 +66,142 @@ local function createLabeledTextBox(name, position, placeholder, callback)
     return TextBox
 end
 
--- Função para escolher número da casa
-createLabeledTextBox("Escolher número da casa", UDim2.new(0, 20, 0, 20), "Digite número", function(value)
-    selectedHouse = tonumber(value)
-    if selectedHouse then
-        print("Casa escolhida: " .. selectedHouse)
-    else
-        print("Número inválido de casa.")
-    end
-end)
+-- Variáveis e Funções
+local settings = {
+    walkSpeed = 16,
+    jumpPower = 50,
+    gravity = 196.2,
+    carSpeed = 60,
+    espColor = Color3.new(1, 0, 0),
+    flyEnabled = false,
+    flySpeed = 50,
+}
 
--- Função para adicionar colega de quarto
-createButton("Adicionar Colega de Quarto", UDim2.new(0, 20, 0, 60), function()
-    if selectedHouse then
-        local targetPlayer = game.Players:GetPlayers()[math.random(1, #game.Players:GetPlayers())] -- Simulando escolha aleatória de jogador
-        print(targetPlayer.Name .. " adicionado como colega de quarto da casa " .. selectedHouse)
-        roommateData[selectedHouse] = roommateData[selectedHouse] or {}
-        table.insert(roommateData[selectedHouse], targetPlayer.Name)
-    else
-        print("Selecione uma casa primeiro!")
-    end
-end)
-
--- Função de desbanir jogador
-createButton("Desbanir Jogador", UDim2.new(0, 20, 0, 100), function()
-    if selectedHouse then
-        local targetPlayerName = game.Players:GetPlayers()[math.random(1, #game.Players:GetPlayers())].Name -- Simulando escolha aleatória de jogador
-        if table.find(roommateData[selectedHouse] or {}, targetPlayerName) then
-            print(targetPlayerName .. " desbanido da casa " .. selectedHouse)
-            -- Aqui você pode implementar a lógica para reverter o banimento (ou qualquer outra ação)
-            -- por exemplo, removendo o jogador da lista de "banidos"
-        else
-            print(targetPlayerName .. " não é colega de quarto da casa " .. selectedHouse)
+local function updateESP(color)
+    for _, player in pairs(game.Players:GetPlayers()) do
+        if player ~= Player and player.Character then
+            local highlight = Instance.new("Highlight", player.Character)
+            highlight.FillColor = color
+            highlight.OutlineColor = Color3.new(0, 0, 0)
         end
-    else
-        print("Selecione uma casa primeiro!")
+    end
+end
+
+-- Botões e Textboxes
+createButton("ESP Players (Ativar)", UDim2.new(0, 20, 0, 20), function()
+    updateESP(settings.espColor)
+end)
+
+createLabeledTextBox("Velocidade", UDim2.new(0, 20, 0, 60), "Digite valor", function(value)
+    settings.walkSpeed = tonumber(value) or 16
+    Player.Character.Humanoid.WalkSpeed = settings.walkSpeed
+end)
+
+createLabeledTextBox("Altura do Pulo", UDim2.new(0, 20, 0, 100), "Digite valor", function(value)
+    settings.jumpPower = tonumber(value) or 50
+    Player.Character.Humanoid.JumpPower = settings.jumpPower
+end)
+
+createLabeledTextBox("Gravidade", UDim2.new(0, 20, 0, 140), "Digite valor", function(value)
+    settings.gravity = tonumber(value) or 196.2
+    workspace.Gravity = settings.gravity
+end)
+
+createButton("Ativar Invisibilidade", UDim2.new(0, 20, 0, 180), function()
+    for _, part in pairs(Player.Character:GetDescendants()) do
+        if part:IsA("BasePart") then
+            part.Transparency = 1
+        end
     end
 end)
 
--- Função para ver a tela dos outros jogadores
-createButton("Ver Tela de Outro Jogador", UDim2.new(0, 20, 0, 140), function()
-    local targetPlayer = game.Players:GetPlayers()[math.random(1, #game.Players:GetPlayers())] -- Simulando escolha aleatória de jogador
-    print("Visualizando a tela de " .. targetPlayer.Name)
-    -- Aqui você pode adicionar a lógica de ver a tela de outro jogador
-end)
-
--- Função para teleportar para estações
-createButton("Teleportar para Estações", UDim2.new(0, 20, 0, 180), function()
-    local stations = {"Metro", "Sorveteria", "Loja de Carro", "Mecânica de Carro", "Polícia", "Bombeiros"}
-    local selectedStation = stations[math.random(1, #stations)]
-    print("Teleportando para: " .. selectedStation)
-    -- Implementar a lógica de teleportação
-end)
-
--- Funções de ajuste de velocidade, pulo, gravidade, etc.
-createLabeledTextBox("Ajustar Velocidade", UDim2.new(0, 20, 0, 220), "Digite velocidade", function(value)
-    local speed = tonumber(value)
-    if speed then
-        print("Velocidade ajustada para: " .. speed)
-        -- Implementar lógica para ajustar a velocidade
+createButton("Voar (Alternar)", UDim2.new(0, 20, 0, 220), function()
+    settings.flyEnabled = not settings.flyEnabled
+    if settings.flyEnabled then
+        Player.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Physics)
+        local BodyVelocity = Instance.new("BodyVelocity", Player.Character.PrimaryPart)
+        BodyVelocity.Velocity = Vector3.new(0, settings.flySpeed, 0)
+        BodyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
     else
-        print("Valor de velocidade inválido.")
+        Player.Character.PrimaryPart:ClearAllChildren()
     end
 end)
 
-createLabeledTextBox("Ajustar Altura do Pulo", UDim2.new(0, 20, 0, 260), "Digite altura", function(value)
-    local jumpHeight = tonumber(value)
-    if jumpHeight then
-        print("Altura do pulo ajustada para: " .. jumpHeight)
-        -- Implementar lógica para ajustar altura do pulo
-    else
-        print("Valor de altura inválido.")
+createButton("Mute Sons", UDim2.new(0, 20, 0, 260), function()
+    for _, sound in pairs(workspace:GetDescendants()) do
+        if sound:IsA("Sound") then
+            sound.Volume = 0
+        end
     end
 end)
 
-createLabeledTextBox("Ajustar Gravidade", UDim2.new(0, 20, 0, 300), "Digite gravidade", function(value)
-    local gravity = tonumber(value)
-    if gravity then
-        print("Gravidade ajustada para: " .. gravity)
-        -- Implementar lógica para ajustar gravidade
-    else
-        print("Valor de gravidade inválido.")
+createButton("Teleportar para Estação", UDim2.new(0, 20, 0, 300), function()
+    Player.Character:SetPrimaryPartCFrame(CFrame.new(Vector3.new(100, 0, 100))) -- Altere as coordenadas
+end)
+
+-- Funções de Troll
+createButton("Explosão de Confete", UDim2.new(0, 20, 0, 340), function()
+    local particle = Instance.new("ParticleEmitter")
+    particle.Parent = Player.Character.Head
+    particle.Texture = "rbxassetid://241594300" -- Confete
+    particle.Rate = 500
+    particle.Lifetime = NumberRange.new(1, 2)
+    particle:Emit(100)
+    wait(2)
+    particle:Destroy()
+end)
+
+createButton("Giro Louco", UDim2.new(0, 20, 0, 380), function()
+    for i = 1, 50 do
+        Player.Character:SetPrimaryPartCFrame(Player.Character.PrimaryPart.CFrame * CFrame.Angles(0, math.rad(45), 0))
+        wait(0.05)
     end
 end)
 
-createLabeledTextBox("Ajustar Velocidade do Carro", UDim2.new(0, 20, 0, 340), "Digite velocidade do carro", function(value)
-    local carSpeed = tonumber(value)
-    if carSpeed then
-        print("Velocidade do carro ajustada para: " .. carSpeed)
-        -- Implementar lógica para ajustar a velocidade do carro
-    else
-        print("Valor de velocidade inválido.")
+createButton("Som Aleatório", UDim2.new(0, 20, 0, 420), function()
+    local sound = Instance.new("Sound")
+    sound.Parent = workspace
+    sound.SoundId = "rbxassetid://5419096133" -- Som engraçado
+    sound.Volume = 5
+    sound:Play()
+    wait(3)
+    sound:Destroy()
+end)
+
+createButton("Personagem Desmontável", UDim2.new(0, 20, 0, 460), function()
+    for _, part in pairs(Player.Character:GetDescendants()) do
+        if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+            part.Anchored = false
+            part.Velocity = Vector3.new(math.random(-50, 50), math.random(50, 100), math.random(-50, 50))
+        end
+    end
+    wait(2)
+    Player.Character:BreakJoints()
+end)
+
+createButton("Chuva de Objetos", UDim2.new(0, 20, 0, 500), function()
+    for i = 1, 50 do
+        local part = Instance.new("Part")
+        part.Size = Vector3.new(1, 1, 1)
+        part.Position = Player.Character.PrimaryPart.Position + Vector3.new(math.random(-10, 10), 20, math.random(-10, 10))
+        part.Anchored = true
+        part.CanCollide = false
+        part.Parent = workspace
+        wait(0.1)
     end
 end)
 
--- Função para espionar jogadores (ESP)
-createButton("Ativar ESP", UDim2.new(0, 20, 0, 380), function()
-    print("ESP ativado!")
-    -- Implementar a lógica do ESP aqui (destacar jogadores, etc)
+createButton("Dança Automática", UDim2.new(0, 20, 0, 540), function()
+    Player.Character:LoadAnimation(Instance.new("Animation")).AnimationId = "rbxassetid://507770416" -- Dança
 end)
 
--- Função de troll: Fazer o jogador ser pequeno e voltar ao normal
-createButton("Mini Pessoa", UDim2.new(0, 20, 0, 420), function()
-    local size = 0.5
-    Player.Character:SetPrimaryPartCFrame(Player.Character.PrimaryPart.CFrame)
-    Player.Character:SetPrimaryPartCFrame(Player.Character.PrimaryPart.CFrame * CFrame.new(0, size, 0))
-end)
-
-createButton("Voltar ao Tamanho Normal", UDim2.new(0, 20, 0, 460), function()
-    local normalSize = 1
-    Player.Character:SetPrimaryPartCFrame(Player.Character.PrimaryPart.CFrame)
-    Player.Character:SetPrimaryPartCFrame(Player.Character.PrimaryPart.CFrame * CFrame.new(0, normalSize, 0))
-end)
-
--- Função de troll: Teleportar para o céu
-createButton("Teleportar para o Céu", UDim2.new(0, 20, 0, 500), function()
-    local skyPosition = Vector3.new(0, 1000, 0)
-    Player.Character:SetPrimaryPartCFrame(CFrame.new(skyPosition))
-    print("Teleportado para o céu!")
+createButton("Personagem Inflável", UDim2.new(0, 20, 0, 580), function()
+    local size = 2
+    for i = 1, 10 do
+        Player.Character:SetPrimaryPartCFrame(Player.Character.PrimaryPart.CFrame)
+        wait(0.2)
+        Player.Character:SetPrimaryPartCFrame(Player.Character.PrimaryPart.CFrame * CFrame.new(0, size, 0))
+        size = -size
+    end
 end)
 
