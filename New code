@@ -84,10 +84,7 @@ local function createAdminPanel(player)
     viewButton.MouseButton1Click:Connect(function()
         local targetPlayer = game.Players:FindFirstChild(playerBox.Text)
         if targetPlayer then
-            local targetCamera = targetPlayer.Character:FindFirstChildOfClass("Humanoid"):FindFirstChildOfClass("Camera")
-            if targetCamera then
-                player.Camera.CameraSubject = targetCamera
-            end
+            player.Camera.CameraSubject = targetPlayer.Character:FindFirstChildOfClass("Humanoid")
         end
     end)
 end
@@ -97,5 +94,6 @@ game.Players.PlayerAdded:Connect(function(player)
         createAdminPanel(player)
     end
 end)
+
 
 
