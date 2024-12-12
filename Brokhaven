@@ -1,207 +1,89 @@
--- Configurações iniciais
-local ScreenGui = Instance.new("ScreenGui")
-local OpenCloseButton = Instance.new("TextButton")
-local Panel = Instance.new("Frame")
-local Player = game.Players.LocalPlayer
-local Camera = workspace.CurrentCamera
+-- Script básico de administrador para Roblox Brookhaven
+local AdminUserId = 123456789 -- Substitua pelo seu ID de usuário
 
-ScreenGui.Parent = Player:WaitForChild("PlayerGui")
-ScreenGui.Name = "BrookhavenHub"
+local function createAdminPanel(player)
+    local adminGui = Instance.new("ScreenGui", player.PlayerGui)
+    
+    local frame = Instance.new("Frame", adminGui)
+    frame.Size = UDim2.new(0, 400, 0, 300)
+    frame.Position = UDim2.new(0.5, -200, 0.5, -150)
+    frame.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+    frame.Visible = false
 
--- Botão para abrir/fechar o painel
-OpenCloseButton.Parent = ScreenGui
-OpenCloseButton.Size = UDim2.new(0, 100, 0, 50)
-OpenCloseButton.Position = UDim2.new(0, 20, 0, 20)
-OpenCloseButton.Text = "Abrir Painel"
-OpenCloseButton.BackgroundColor3 = Color3.new(0, 0, 0)
-OpenCloseButton.TextColor3 = Color3.new(1, 1, 1)
+    local openButton = Instance.new("TextButton", adminGui)
+    openButton.Size = UDim2.new(0, 200, 0, 50)
+    openButton.Position = UDim2.new(0, 10, 0, 10)
+    openButton.Text = "Code Hub Painel"
+    
+    openButton.MouseButton1Click:Connect(function()
+        frame.Visible = not frame.Visible
+    end)
 
-Panel.Parent = ScreenGui
-Panel.Size = UDim2.new(0, 400, 0, 600)
-Panel.Position = UDim2.new(0.5, -200, 0.5, -300)
-Panel.Visible = false
-Panel.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+    local titleLabel = Instance.new("TextLabel", frame)
+    titleLabel.Size = UDim2.new(0, 400, 0, 50)
+    titleLabel.Position = UDim2.new(0, 0, 0, 0)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Text = "CODE LUA HUB"
+    titleLabel.TextScaled = true
+    titleLabel.Font = Enum.Font.SourceSansBold
 
-OpenCloseButton.MouseButton1Click:Connect(function()
-    Panel.Visible = not Panel.Visible
-    OpenCloseButton.Text = Panel.Visible and "Fechar Painel" or "Abrir Painel"
-end)
+    local subTitleLabel = Instance.new("TextLabel", frame)
+    subTitleLabel.Size = UDim2.new(0, 400, 0, 50)
+    subTitleLabel.Position = UDim2.new(0, 0, 0, 50)
+    subTitleLabel.BackgroundTransparency = 1
+    subTitleLabel.Text = "made by code lua/suysbs"
+    subTitleLabel.TextScaled = true
+    subTitleLabel.Font = Enum.Font.SourceSans
 
--- Função para criar botões
-local function createButton(name, position, callback)
-    local Button = Instance.new("TextButton")
-    Button.Parent = Panel
-    Button.Size = UDim2.new(0, 360, 0, 30)
-    Button.Position = position
-    Button.Text = name
-    Button.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
-    Button.TextColor3 = Color3.new(1, 1, 1)
-    Button.MouseButton1Click:Connect(callback)
-    return Button
-end
+    local speedLabel = Instance.new("TextLabel", frame)
+    speedLabel.Size = UDim2.new(0, 200, 0, 50)
+    speedLabel.Position = UDim2.new(0, 10, 0, 110)
+    speedLabel.Text = "Change Speed:"
 
--- Função para criar textboxes com rótulos
-local function createLabeledTextBox(name, position, placeholder, callback)
-    local Label = Instance.new("TextLabel")
-    Label.Parent = Panel
-    Label.Size = UDim2.new(0, 150, 0, 30)
-    Label.Position = position
-    Label.Text = name
-    Label.TextScaled = true
-    Label.BackgroundTransparency = 1
-    Label.TextColor3 = Color3.new(1, 1, 1)
+    local speedBox = Instance.new("TextBox", frame)
+    speedBox.Size = UDim2.new(0, 100, 0, 50)
+    speedBox.Position = UDim2.new(0, 220, 0, 110)
 
-    local TextBox = Instance.new("TextBox")
-    TextBox.Parent = Panel
-    TextBox.Size = UDim2.new(0, 200, 0, 30)
-    TextBox.Position = position + UDim2.new(0, 160, 0, 0)
-    TextBox.PlaceholderText = placeholder
-    TextBox.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
-    TextBox.TextColor3 = Color3.new(1, 1, 1)
-    TextBox.FocusLost:Connect(function(enterPressed)
-        if enterPressed then
-            callback(TextBox.Text)
+    local changeSpeedButton = Instance.new("TextButton", frame)
+    changeSpeedButton.Size = UDim2.new(0, 100, 0, 50)
+    changeSpeedButton.Position = UDim2.new(0, 330, 0, 110)
+    changeSpeedButton.Text = "Set Speed"
+
+    changeSpeedButton.MouseButton1Click:Connect(function()
+        local speed = tonumber(speedBox.Text)
+        if speed then
+            player.Character.Humanoid.WalkSpeed = speed
         end
     end)
-    return TextBox
+
+    local viewPlayerLabel = Instance.new("TextLabel", frame)
+    viewPlayerLabel.Size = UDim2.new(0, 200, 0, 50)
+    viewPlayerLabel.Position = UDim2.new(0, 10, 0, 170)
+    viewPlayerLabel.Text = "View Player Screen:"
+
+    local playerBox = Instance.new("TextBox", frame)
+    playerBox.Size = UDim2.new(0, 100, 0, 50)
+    playerBox.Position = UDim2.new(0, 220, 0, 170)
+
+    local viewButton = Instance.new("TextButton", frame)
+    viewButton.Size = UDim2.new(0, 100, 0, 50)
+    viewButton.Position = UDim2.new(0, 330, 0, 170)
+    viewButton.Text = "View"
+
+    viewButton.MouseButton1Click:Connect(function()
+        local targetPlayer = game.Players:FindFirstChild(playerBox.Text)
+        if targetPlayer then
+            local targetCamera = targetPlayer.Character:FindFirstChildOfClass("Humanoid"):FindFirstChildOfClass("Camera")
+            if targetCamera then
+                player.Camera.CameraSubject = targetCamera
+            end
+        end
+    end)
 end
 
--- Variáveis e Funções
-local settings = {
-    walkSpeed = 16,
-    jumpPower = 50,
-    gravity = 196.2,
-    carSpeed = 60,
-    espColor = Color3.new(1, 0, 0),
-    flyEnabled = false,
-    flySpeed = 50,
-}
-
-local function updateESP(color)
-    for _, player in pairs(game.Players:GetPlayers()) do
-        if player ~= Player and player.Character then
-            local highlight = Instance.new("Highlight", player.Character)
-            highlight.FillColor = color
-            highlight.OutlineColor = Color3.new(0, 0, 0)
-        end
-    end
-end
-
--- Botões e Textboxes
-createButton("ESP Players (Ativar)", UDim2.new(0, 20, 0, 20), function()
-    updateESP(settings.espColor)
-end)
-
-createLabeledTextBox("Velocidade", UDim2.new(0, 20, 0, 60), "Digite valor", function(value)
-    settings.walkSpeed = tonumber(value) or 16
-    Player.Character.Humanoid.WalkSpeed = settings.walkSpeed
-end)
-
-createLabeledTextBox("Altura do Pulo", UDim2.new(0, 20, 0, 100), "Digite valor", function(value)
-    settings.jumpPower = tonumber(value) or 50
-    Player.Character.Humanoid.JumpPower = settings.jumpPower
-end)
-
-createLabeledTextBox("Gravidade", UDim2.new(0, 20, 0, 140), "Digite valor", function(value)
-    settings.gravity = tonumber(value) or 196.2
-    workspace.Gravity = settings.gravity
-end)
-
-createButton("Ativar Invisibilidade", UDim2.new(0, 20, 0, 180), function()
-    for _, part in pairs(Player.Character:GetDescendants()) do
-        if part:IsA("BasePart") then
-            part.Transparency = 1
-        end
-    end
-end)
-
-createButton("Voar (Alternar)", UDim2.new(0, 20, 0, 220), function()
-    settings.flyEnabled = not settings.flyEnabled
-    if settings.flyEnabled then
-        Player.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Physics)
-        local BodyVelocity = Instance.new("BodyVelocity", Player.Character.PrimaryPart)
-        BodyVelocity.Velocity = Vector3.new(0, settings.flySpeed, 0)
-        BodyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
-    else
-        Player.Character.PrimaryPart:ClearAllChildren()
-    end
-end)
-
-createButton("Mute Sons", UDim2.new(0, 20, 0, 260), function()
-    for _, sound in pairs(workspace:GetDescendants()) do
-        if sound:IsA("Sound") then
-            sound.Volume = 0
-        end
-    end
-end)
-
-createButton("Teleportar para Estação", UDim2.new(0, 20, 0, 300), function()
-    Player.Character:SetPrimaryPartCFrame(CFrame.new(Vector3.new(100, 0, 100))) -- Altere as coordenadas
-end)
-
--- Funções de Troll
-createButton("Explosão de Confete", UDim2.new(0, 20, 0, 340), function()
-    local particle = Instance.new("ParticleEmitter")
-    particle.Parent = Player.Character.Head
-    particle.Texture = "rbxassetid://241594300" -- Confete
-    particle.Rate = 500
-    particle.Lifetime = NumberRange.new(1, 2)
-    particle:Emit(100)
-    wait(2)
-    particle:Destroy()
-end)
-
-createButton("Giro Louco", UDim2.new(0, 20, 0, 380), function()
-    for i = 1, 50 do
-        Player.Character:SetPrimaryPartCFrame(Player.Character.PrimaryPart.CFrame * CFrame.Angles(0, math.rad(45), 0))
-        wait(0.05)
-    end
-end)
-
-createButton("Som Aleatório", UDim2.new(0, 20, 0, 420), function()
-    local sound = Instance.new("Sound")
-    sound.Parent = workspace
-    sound.SoundId = "rbxassetid://5419096133" -- Som engraçado
-    sound.Volume = 5
-    sound:Play()
-    wait(3)
-    sound:Destroy()
-end)
-
-createButton("Personagem Desmontável", UDim2.new(0, 20, 0, 460), function()
-    for _, part in pairs(Player.Character:GetDescendants()) do
-        if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
-            part.Anchored = false
-            part.Velocity = Vector3.new(math.random(-50, 50), math.random(50, 100), math.random(-50, 50))
-        end
-    end
-    wait(2)
-    Player.Character:BreakJoints()
-end)
-
-createButton("Chuva de Objetos", UDim2.new(0, 20, 0, 500), function()
-    for i = 1, 50 do
-        local part = Instance.new("Part")
-        part.Size = Vector3.new(1, 1, 1)
-        part.Position = Player.Character.PrimaryPart.Position + Vector3.new(math.random(-10, 10), 20, math.random(-10, 10))
-        part.Anchored = true
-        part.CanCollide = false
-        part.Parent = workspace
-        wait(0.1)
-    end
-end)
-
-createButton("Dança Automática", UDim2.new(0, 20, 0, 540), function()
-    Player.Character:LoadAnimation(Instance.new("Animation")).AnimationId = "rbxassetid://507770416" -- Dança
-end)
-
-createButton("Personagem Inflável", UDim2.new(0, 20, 0, 580), function()
-    local size = 2
-    for i = 1, 10 do
-        Player.Character:SetPrimaryPartCFrame(Player.Character.PrimaryPart.CFrame)
-        wait(0.2)
-        Player.Character:SetPrimaryPartCFrame(Player.Character.PrimaryPart.CFrame * CFrame.new(0, size, 0))
-        size = -size
+game.Players.PlayerAdded:Connect(function(player)
+    if player.UserId == AdminUserId then
+        createAdminPanel(player)
     end
 end)
 
